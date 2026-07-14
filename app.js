@@ -1,31 +1,68 @@
+require("dotenv").config();
+
 const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
+const path = require("path");
 
 const connectDB = require("./config/db");
 
-dotenv.config();
+const gigRoutes = require("./routes/gigRoutes");
+const authRoutes = require("./routes/authRoutes");
 
-// Connect Database
-connectDB();
+const logger = require("./middleware/loggerMiddleware");
+const errorHandler = require("./middleware/errorMiddleware");
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// ===============================
+// Connect MongoDB
+// ===============================
+connectDB();
 
+// ===============================
+// Middlewares
+// ===============================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Logger Middleware
+app.use(logger);
+
+// Serve Frontend Files
+app.use(express.static(path.join(__dirname, "public")));
+
+// ===============================
 // Home Route
+// ===============================
 app.get("/", (req, res) => {
-    res.send("🚀 Freelance Gig Management System API is Running...");
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Routes
-app.use("/api/gigs", require("./routes/gigRoutes"));
+// ===============================
+// API Routes
+// ===============================
+app.use("/api/auth", authRoutes);
+app.use("/api/gigs", gigRoutes);
 
+// ===============================
+// 404 Route
+// ===============================
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route Not Found"
+    });
+});
+
+// ===============================
+// Global Error Middleware
+// ===============================
+app.use(errorHandler);
+
+// ===============================
 // Start Server
+// ===============================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    console.log(`🚀 Server Running at http://localhost:${PORT}`);
 });

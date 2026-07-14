@@ -2,26 +2,28 @@ const express = require("express");
 const router = express.Router();
 
 const {
+
     createGig,
+
     getAllGigs,
+
     getGigById,
+
     updateGig,
+
     deleteGig,
+
 } = require("../controllers/gigController");
 
-// Create a new Gig
-router.post("/", createGig);
+const { protect } = require("../middleware/authMiddleware");
 
-// Get all Gigs
+// Public Routes
 router.get("/", getAllGigs);
-
-// Get a single Gig by ID
 router.get("/:id", getGigById);
 
-// Update a Gig
-router.put("/:id", updateGig);
-
-// Delete a Gig
-router.delete("/:id", deleteGig);
+// Protected Routes
+router.post("/", protect, createGig);
+router.put("/:id", protect, updateGig);
+router.delete("/:id", protect, deleteGig);
 
 module.exports = router;
